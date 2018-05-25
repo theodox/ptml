@@ -11,15 +11,14 @@ class LayoutFrame:
     """manages the layout stack"""
     CURRENT = None
 
-    def __init__(self, parent, indent):
+    def __init__(self, parent):
         self.children = []
-        self.indent = indent
         self.parent = parent
 
     @classmethod
     def open(cls):
         """begin tracking a new layout frame"""
-        new_frame = LayoutFrame(cls.CURRENT, cls.indent() + 1)
+        new_frame = LayoutFrame(cls.CURRENT)
         cls.CURRENT = new_frame
         return new_frame
 
@@ -33,11 +32,6 @@ class LayoutFrame:
         """add <item> to the active layout frame"""
         if cls.CURRENT:
             cls.CURRENT.children.append(item)
-
-    @classmethod
-    def indent(cls):
-        """get's the current indent level"""
-        return cls.CURRENT.indent if cls.CURRENT else 0
 
 
 class ElementBase:
@@ -56,7 +50,6 @@ class ElementBase:
 
         self.attribs = instance_attribs
         self.content = content
-        self.indent = LayoutFrame.indent()
         self.frame = None
         LayoutFrame.append(self)
 
@@ -68,11 +61,11 @@ class ElementBase:
         LayoutFrame.close()
         return exc_type is None
 
-    def render(self):
+    def render(self, indent=0):
         """yield this element as a stream of strings"""
         inline = self.frame is None
 
-        yield '\n{}<{}'.format('\t' * self.indent, self.TAG)
+        yield '\n{}<{}'.format('\t' * indent, self.TAG)
 
         # for consistency always yield id, class, then other attribs
         idval = self.attribs.get('id')
@@ -94,7 +87,7 @@ class ElementBase:
         # contents
         if not inline:
             for c in self.frame.children:
-                for r in c.render():
+                for r in c.render(indent + 1):
                     yield r
             yield "\n"
         else:
@@ -102,7 +95,7 @@ class ElementBase:
         # end contents
 
         # closing tag
-        yield "{}</{}>".format('\t' * self.indent if not inline else '', self.TAG)
+        yield "{}</{}>".format('\t' * indent if not inline else '', self.TAG)
 
 
 # HTML class tags -------------------
@@ -193,6 +186,7 @@ class Em (ElementBase):
 
 class Form (ElementBase):
     TAG = "form"
+
 
 class Footer(ElementBase):
     TAG = 'footer'
@@ -353,6 +347,7 @@ class Tr (ElementBase):
 class Ul (ElementBase):
     TAG = "ul"
 
+
 class Nav(ElementBase):
     TAG = "nav"
 
@@ -361,6 +356,7 @@ class Comment(ElementBase):
     """
     Explicit HTML comment
     """
+
     def render(self):
         yield "\n{}<!-- {} -->".format('\t' * self.indent, self.content)
 
@@ -375,6 +371,7 @@ class H (ElementBase):
 
         H1("Headline")
     """
+
     def __init__(self, level, content, **kwargs):
         self.TAG = "h{}".format(level)
         ElementBase.__init__(self, content, **kwargs)

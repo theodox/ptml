@@ -75,3 +75,4 @@ with HTML() as doc:
             P("© Company 2017-2018")
 with open("./index.html", 'wb') as fh:
     fh.writelines(doc.render())
+    fh.writelines(jumbo.render(4))
