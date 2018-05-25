@@ -2,7 +2,7 @@ import datetime
 
 
 class LayoutFrame:
-
+    """manages the layout stack"""
     CURRENT = None
 
     def __init__(self, parent, indent):
@@ -12,25 +12,30 @@ class LayoutFrame:
 
     @classmethod
     def open(cls):
+        """begin tracking a new layout frame"""
         new_frame = LayoutFrame(cls.CURRENT, cls.indent() + 1)
         cls.CURRENT = new_frame
         return new_frame
 
     @classmethod
     def close(cls):
+        """revert to the previous layout frame"""
         cls.CURRENT = cls.CURRENT.parent
 
     @classmethod
     def append(cls, item):
+        """add <item> to the active layout frame"""
         if cls.CURRENT:
             cls.CURRENT.children.append(item)
 
     @classmethod
     def indent(cls):
+        """get's the current indent level"""
         return cls.CURRENT.indent if cls.CURRENT else 0
 
 
 class ElementBase:
+    """base for all tag elements"""
     TAG = 'element'
 
     def __init__(self, content=None, **attribs):
@@ -68,8 +73,10 @@ class ElementBase:
             if k in ('id', 'class'):
                 continue
             yield ' {}="{}"'.format(k, v)
-        yield ">" # close beginning tag
+        yield ">"
+        # ends beginning tab
 
+        # contents
         if not inline:
             for c in self.frame.children:
                 for r in c.render():
@@ -77,87 +84,342 @@ class ElementBase:
             yield "\n"
         else:
             yield self.content or ''
+        # end contents
 
-        # close tag
+        # closing tag
         yield "{}</{}>".format('\t' * self.indent if not inline else '', self.TAG)
 
-    def validate(self, item):
-        return isinstance(item, ElementBase)
+
+# HTML class tags -------------------
+
+class A (ElementBase):
+    TAG = "a"
 
 
-class HTML (ElementBase):
-    TAG = 'html'
+class Abbr (ElementBase):
+    TAG = "abbr"
 
 
-class Head(ElementBase):
-    TAG = 'head'
+class Acronym (ElementBase):
+    TAG = "acronym"
 
 
-class Body(ElementBase):
-    TAG = 'body'
+class Address (ElementBase):
+    TAG = "address"
+
+
+class Area (ElementBase):
+    TAG = "area"
+
+
+class Base (ElementBase):
+    TAG = "base"
+
+
+class Blockquote (ElementBase):
+    TAG = "blockquote"
+
+
+class Body (ElementBase):
+    TAG = "body"
+
+
+class Br (ElementBase):
+    TAG = "br"
+
+
+class Button (ElementBase):
+    TAG = "button"
+
+
+class Caption (ElementBase):
+    TAG = "caption"
+
+
+class Cite (ElementBase):
+    TAG = "cite"
+
+
+class Code (ElementBase):
+    TAG = "code"
+
+
+class Col (ElementBase):
+    TAG = "col"
+
+
+class Dfn (ElementBase):
+    TAG = "dfn"
+
+
+class Dir (ElementBase):
+    TAG = "dir"
 
 
 class Div (ElementBase):
-    TAG = 'div'
+    TAG = "div"
 
 
-class Title(ElementBase):
-    TAG = 'title'
+class Dl (ElementBase):
+    TAG = "dl"
+
+
+class Dt (ElementBase):
+    TAG = "dt"
+
+
+class Dd (ElementBase):
+    TAG = "dd"
+
+
+class Em (ElementBase):
+    TAG = "em"
+
+
+class Form (ElementBase):
+    TAG = "form"
+
+
+class H1 (ElementBase):
+    TAG = "h1"
+
+
+class H2 (ElementBase):
+    TAG = "h2"
+
+
+class H3 (ElementBase):
+    TAG = "h3"
+
+
+class H4 (ElementBase):
+    TAG = "h4"
+
+
+class H5 (ElementBase):
+    TAG = "h5"
+
+
+class H6 (ElementBase):
+    TAG = "h6"
+
+
+class Head (ElementBase):
+    TAG = "head"
+
+
+class HTML (ElementBase):
+    TAG = "html"
+
+
+class Img (ElementBase):
+    TAG = "img"
+
+
+class Input (ElementBase):
+    TAG = "input"
+
+
+class Link (ElementBase):
+    TAG = "link"
+
+
+class Li (ElementBase):
+    TAG = "li"
+
+
+class Map (ElementBase):
+    TAG = "map"
+
+
+class Marquee (ElementBase):
+    TAG = "marquee"
+
+
+class Menu (ElementBase):
+    TAG = "menu"
+
+
+class Meta (ElementBase):
+    TAG = "meta"
+
+
+class Ol (ElementBase):
+    TAG = "ol"
+
+
+class Option (ElementBase):
+    TAG = "option"
+
+
+class Param (ElementBase):
+    TAG = "param"
+
+
+class Pre (ElementBase):
+    TAG = "pre"
 
 
 class P (ElementBase):
-    TAG = 'p'
+    TAG = "p"
 
 
-class A (ElementBase):
-    TAG = 'a'
+class Q (ElementBase):
+    TAG = "q"
 
 
-class Span(ElementBase):
-    TAG = 'span'
+class Script (ElementBase):
+    TAG = "script"
+
+
+class Select (ElementBase):
+    TAG = "select"
+
+
+class Span (ElementBase):
+    TAG = "span"
+
+
+class Strong (ElementBase):
+    TAG = "strong"
+
+
+class Style (ElementBase):
+    TAG = "style"
+
+
+class Sub (ElementBase):
+    TAG = "sub"
+
+
+class Sup (ElementBase):
+    TAG = "sup"
+
+
+class Table (ElementBase):
+    TAG = "table"
+
+
+class Td (ElementBase):
+    TAG = "td"
+
+
+class Textarea (ElementBase):
+    TAG = "textarea"
+
+
+class Th (ElementBase):
+    TAG = "th"
+
+
+class TBody (ElementBase):
+    TAG = "tbody"
+
+
+class THead (ElementBase):
+    TAG = "thead"
+
+
+class TFoot (ElementBase):
+    TAG = "tfoot"
+
+
+class Title (ElementBase):
+    TAG = "title"
+
+
+class Tr (ElementBase):
+    TAG = "tr"
+
+
+class Ul (ElementBase):
+    TAG = "ul"
 
 
 class Comment(ElementBase):
-
+    """
+    Explicit HTML comment
+    """
     def render(self):
         yield "\n{}<!-- {} -->".format('\t' * self.indent, self.content)
 
 
-class Link(ElementBase):
-    TAG = 'link'
+class H (ElementBase):
+    """
+    An alternative to explicit H1... H2... etc tags.
 
-class Button(ElementBase):
-    TAG = 'button'
+        H(1, "Headline")
 
-class UL(ElementBase):
-    TAG = 'ul'
+    is equivalent to 
 
-class LI(ElementBase):
-    TAG = 'li'
-
-def make_the_button():
-    Comment("I'm a comment")
-    with Button(cls = ('btn', 'btn-warning'), type='button') as fred:
-        Span('go to ')
-        A((str(datetime.datetime.now())), href='http://www.theodox.com')
-        Span('right now', cls='bold')
-
-with HTML() as doc:
-    with Head():
-        Title('hello world')
-        Link(rel="stylesheet",
-             href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css",
-             integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u",
-             crossorigin="anonymous")
-    with Body():
-        with Div(cls='container', id = 'main') as d:
-            with Div(cls='row') as r:
-                make_the_button()
-            with Div(cls='row'):
-                with UL(cls='list-group'):
-                    for n in range(100):
-                        LI('number {}'.format(n), cls='list-group-item')
+        H1("Headline")
+    """
+    def __init__(self, level, content, **kwargs):
+        self.TAG = "h{}".format(level)
+        ElementBase.__init__(self, content, **kwargs)
 
 
-with open("./index.html", 'wt') as fh:
-    fh.writelines(doc.render())
+#-------------------- deprecated elements ----------------------
+
+class IsIndex (ElementBase):
+    TAG = "isindex"
+
+
+class Applet (ElementBase):
+    TAG = "applet"
+
+
+class Blink (ElementBase):
+    TAG = "blink"
+
+
+class Small (ElementBase):
+    TAG = "small"
+
+
+class Strikeout (ElementBase):
+    TAG = "strikeout"
+
+
+class Tt (ElementBase):
+    TAG = "tt"
+
+
+class U (ElementBase):
+    TAG = "u"
+
+
+class Var (ElementBase):
+    TAG = "var"
+
+
+class I (ElementBase):
+    TAG = "i"
+
+
+class Kbd (ElementBase):
+    TAG = "kbd"
+
+
+class Font (ElementBase):
+    TAG = "font"
+
+
+class Hr (ElementBase):
+    TAG = "hr"
+
+
+class Center (ElementBase):
+    TAG = "center"
+
+
+class B (ElementBase):
+    TAG = "b"
+
+
+class Basefont (ElementBase):
+    TAG = "basefont"
+
+
+class Big (ElementBase):
+    TAG = "big"
