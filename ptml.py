@@ -1,4 +1,10 @@
 import datetime
+import sys
+
+if (sys.version_info[0] == 2):
+    from cgi import escape
+else:
+    from html import escape
 
 
 class LayoutFrame:
@@ -37,11 +43,18 @@ class LayoutFrame:
 class ElementBase:
     """base for all tag elements"""
     TAG = 'element'
+    DEFAULTS = {}
+    __slots__ = 'attribs', 'content', 'indent', 'frame'
 
     def __init__(self, content=None, **attribs):
+
         if 'cls' in attribs:
             attribs['class'] = attribs.pop('cls')
-        self.attribs = attribs
+
+        instance_attribs = self.DEFAULTS.copy()
+        instance_attribs.update(attribs)
+
+        self.attribs = instance_attribs
         self.content = content
         self.indent = LayoutFrame.indent()
         self.frame = None
@@ -51,10 +64,12 @@ class ElementBase:
         self.frame = LayoutFrame.open()
         return self
 
-    def __exit__(self, *exception_context):
+    def __exit__(self, exc_type, exc_value, tb):
         LayoutFrame.close()
+        return exc_type is None
 
     def render(self):
+        """yield this element as a stream of strings"""
         inline = self.frame is None
 
         yield '\n{}<{}'.format('\t' * self.indent, self.TAG)
@@ -72,7 +87,7 @@ class ElementBase:
         for k, v in self.attribs.items():
             if k in ('id', 'class'):
                 continue
-            yield ' {}="{}"'.format(k, v)
+            yield ' {}="{}"'.format(k, escape(v, quote=True))
         yield ">"
         # ends beginning tab
 
@@ -83,7 +98,7 @@ class ElementBase:
                     yield r
             yield "\n"
         else:
-            yield self.content or ''
+            yield escape(self.content or '')
         # end contents
 
         # closing tag
@@ -178,6 +193,9 @@ class Em (ElementBase):
 
 class Form (ElementBase):
     TAG = "form"
+
+class Footer(ElementBase):
+    TAG = 'footer'
 
 
 class H1 (ElementBase):
@@ -334,6 +352,9 @@ class Tr (ElementBase):
 
 class Ul (ElementBase):
     TAG = "ul"
+
+class Nav(ElementBase):
+    TAG = "nav"
 
 
 class Comment(ElementBase):
